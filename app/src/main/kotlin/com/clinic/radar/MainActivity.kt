@@ -1,9 +1,14 @@
 package com.clinic.radar
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.webkit.JsResult
+import android.webkit.JsPromptResult
+import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
@@ -30,6 +35,41 @@ class MainActivity : AppCompatActivity() {
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
         webView.webViewClient = WebViewClient()
+
+        webView.webChromeClient = object : WebChromeClient() {
+
+            override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setPositiveButton("موافق") { _, _ -> result.confirm() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }
+
+            override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setPositiveButton("موافق") { _, _ -> result.confirm() }
+                    .setNegativeButton("إلغاء") { _, _ -> result.cancel() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }
+
+            override fun onJsPrompt(view: WebView, url: String, message: String, defaultValue: String?, result: JsPromptResult): Boolean {
+                val input = EditText(this@MainActivity)
+                input.setText(defaultValue ?: "")
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setView(input)
+                    .setPositiveButton("موافق") { _, _ -> result.confirm(input.text.toString()) }
+                    .setNegativeButton("إلغاء") { _, _ -> result.cancel() }
+                    .setOnCancelListener { result.cancel() }
+                    .show()
+                return true
+            }
+        }
 
         webView.loadUrl("http://localhost:$LOCAL_PORT/")
     }
