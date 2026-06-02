@@ -1,4 +1,4 @@
-name: Build Debug APK
+name: Build Release APK
 
 on:
   push:
@@ -30,12 +30,35 @@ jobs:
           unzip -q /tmp/gradle.zip -d /opt
           echo "/opt/gradle-8.6/bin" >> $GITHUB_PATH
 
-      - name: Build Debug APK
-        run: gradle assembleDebug
+      - name: Generate Keystore
+        run: |
+          keytool -genkeypair \
+            -alias clinic_key \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -keystore clinic.keystore \
+            -storepass clinic123 \
+            -keypass clinic123 \
+            -dname "CN=Clinic Radar, OU=Clinic, O=Clinic, L=City, S=State, C=US" \
+            -noprompt
+
+      - name: Build Release APK
+        run: gradle assembleRelease
+
+      - name: Sign APK
+        run: |
+          $ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)/apksigner sign \
+            --ks clinic.keystore \
+            --ks-key-alias clinic_key \
+            --ks-pass pass:clinic123 \
+            --key-pass pass:clinic123 \
+            --out app/build/outputs/apk/release/app-release-signed.apk \
+            app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: clinic-radar-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7
+          name: clinic-radar-release
+          path: app/build/outputs/apk/release/app-release-signed.apk
+          retention-days: 30
