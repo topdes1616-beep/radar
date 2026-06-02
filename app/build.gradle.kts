@@ -18,6 +18,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -40,4 +41,3 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("org.nanohttpd:nanohttpd:2.3.1")
 }
-
